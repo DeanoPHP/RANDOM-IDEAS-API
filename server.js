@@ -1,51 +1,25 @@
 const express = require('express');
-const port = 8080;
+// require dotenv allows us to require the .env in the config file
+require('dotenv').config();
+const port = process.env.PORT || 5001;
+const connectDB = require('./config/db');
+
+connectDB();
 
 const app = express();
 
-// lets add an array of objects. leter we will get this from mongo
-const ideas = [
-    {
-        id: 1,
-        text: 'Positive news letter thean only sends positive feedback', 
-        tag: 'Technology', 
-        username: 'TonyStark',
-        date: '2023-12-02'
-    },
-    {
-        id: 2,
-        text: 'Milk cartons that turn a different colour', 
-        tag: 'Technology', 
-        username: 'Inventions',
-        date: '2023-12-02'
-    },
-    {
-        id: 3,
-        text: 'ATM location app which lets you know where the nearest ATM is.', 
-        tag: 'Technology', 
-        username: 'TonyStark',
-        date: '2023-12-02'
-    },
-];
+// body parser middleware
+// We use middleware to parse data between the req and res
+// allow to send raw json to browser
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 app.get('/', (req, res) => {
     res.json({ message: 'Welcome to the random ideas API' });
 });
 
-// Get all ideas
-app.get('/api/ideas', (req, res) => {
-    res.json({ success: true, data: ideas});
-});
-
-// Get a single idea
-app.get('/api/ideas/:id', (req, res) => {
-    const idea = ideas.find((idea) => idea.id === +req.params.id);
-
-    if (!idea) {
-        return res.status(404).json({ success: false, error: 'Resource not found' });
-    }
-
-    res.json({ success: true, data: idea });
-});
+// here we are importing our module.exports from ./router/ideas
+const ideasRouter = require('./routes/ideas');
+app.use('/api/ideas', ideasRouter);
 
 app.listen(port, () => console.log(`Server listening on port ${port}`));
